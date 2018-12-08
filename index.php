@@ -171,6 +171,60 @@
 				})(".sortable6")
 			});
 			
+			window.addEventListener("DOMContentLoaded", function() {
+				(function(f) {
+					function g(c) {
+						return function(b, a) {
+							b = b.cells[c].textContent;
+							a = a.cells[c].textContent;
+							b = +b || b;
+							a = +a || a;
+							return b > a ? 1 : b < a ? -1 : 0
+						}
+					}
+					var d = document.querySelector(f),
+						e = [].slice.call(d.rows, 1);
+					[].slice.call(d.rows[0].cells).forEach(function(c, b) {
+						var a = 0;
+						c.addEventListener("click", function() {
+							e.sort(g(b));
+							a && e.reverse();
+							e.forEach(function(a) {
+								d.appendChild(a)
+							});
+							a ^= 1
+						})
+					})
+				})(".sortable7")
+			});
+						
+			window.addEventListener("DOMContentLoaded", function() {
+				(function(f) {
+					function g(c) {
+						return function(b, a) {
+							b = b.cells[c].textContent;
+							a = a.cells[c].textContent;
+							b = +b || b;
+							a = +a || a;
+							return b > a ? 1 : b < a ? -1 : 0
+						}
+					}
+					var d = document.querySelector(f),
+						e = [].slice.call(d.rows, 1);
+					[].slice.call(d.rows[0].cells).forEach(function(c, b) {
+						var a = 0;
+						c.addEventListener("click", function() {
+							e.sort(g(b));
+							a && e.reverse();
+							e.forEach(function(a) {
+								d.appendChild(a)
+							});
+							a ^= 1
+						})
+					})
+				})(".sortable8")
+			});
+			
 			function hide1() {
 				var x = document.getElementById("DIV1");
 				if (x.style.display === "none") {
@@ -245,6 +299,7 @@
 				hide5();
 				hide6();
 				hide7();
+				hide8();
 			}
 		</script>
 </head>
@@ -1273,7 +1328,7 @@
 						winPrint.document.write('<center>');
 						winPrint.document.write('<table style=\"border-color: Black; width: 800px;\" border=\"1px\">');
 						winPrint.document.write('<tr><td style=\"background-color: AntiqueWhite\" colspan=\"3\"><center><h1>Медосмотр</h1></center></td></tr>');
-						winPrint.document.write('<tr>      <td style=\"background-color: Lavender\"><center>Вес</center></td>    <td style=\"background-color: Lavender\"><center>Рост</center></td>   <td style=\"background-color: Lavender\"><center>Дата</center></td>   </tr>');
+						winPrint.document.write('<tr>      <td style=\"background-color: Lavender\"><center>Вес(кг)</center></td>    <td style=\"background-color: Lavender\"><center>Рост(см)</center></td>   <td style=\"background-color: Lavender\"><center>Дата</center></td>   </tr>');
 					";
 				if ($result->num_rows > 0)
 					while($row = $result->fetch_assoc()) 
@@ -1395,7 +1450,6 @@
 				$result = $conn->query($query);
 				while($row = $result->fetch_assoc()) $dead = $row['dead'];
 				
-				echo "alert('РР');";
 				if ($dead == 1)
 					$query = "SELECT id_animal, title, name, sex, weight, height, animal_class_name, birth_date, gone_date, vaccins, ills, dead
 								FROM gone_animal, animal_class
@@ -1453,8 +1507,93 @@
 				$seller_phone = $_POST['seller_phone'];
 				$seller_address = $_POST['seller_address'];
 				
-				
+				$query = "INSERT INTO food_seller VALUES (NULL, '$seller_name', '$seller_phone', '$seller_address');";
+				mysql_query($query);
 			}
+			
+			
+			
+			if(isset($_POST['add_food'])){  
+				$id_season = $_POST['id_season'];
+				$id_season = preg_replace("/[^0-9]/", '', $id_season);
+				$food_title= $_POST['food_name'];
+				$measure   = $_POST['measure'];
+				
+				$query = "INSERT INTO food VALUES (NULL, $id_season, '$food_title', '$measure');";
+				mysql_query($query);
+			}
+			
+			
+			
+			
+			if(isset($_POST['buy'])){  
+				$food_name = preg_replace("/[^0-9]/", '', $_POST['food_buy']);
+				$seller_name = preg_replace("/[^0-9]/", '', $_POST['seller_buy']);
+				$buy_date = $_POST['buy_date'];
+				$amount = $_POST['amount'];
+				$price_per_ed = $_POST['price_per_ed'];
+				$id_animal = preg_replace("/[^0-9]/", '', $_POST['id_animal_buy_food']);
+				
+				$query = "INSERT INTO food_bought VALUES (
+								$seller_name,
+								$food_name, 
+								'$buy_date',
+								$amount,
+								$price_per_ed,
+								$id_animal
+							);";
+				mysql_query($query);
+			}
+			
+			
+			
+			/*печать закупки кормов*/
+			if(isset($_POST['print_food'])){
+				$id_animal = preg_replace("/[^0-9]/", '', $_POST['bought_name']);
+				
+				$conn = new mysqli("localhost", "root", "fsociety", "zoo");
+				$query = "SELECT seller_name, food_title, buy_date, amount, price_per_ed, name
+							FROM food_bought, food_seller, food, animal
+							WHERE food_seller.id_seller=food_bought.id_seller
+								AND food.id_food=food_bought.id_food
+								AND animal.id_animal=food_bought.id_animal
+								AND $id_animal=food_bought.id_animal
+							ORDER BY buy_date;";
+				$result = $conn->query($query);
+				echo "<script>
+						var winPrint = window.open('', '', 'left=100,top=100,width=1200,height=600,toolbar=0,scrollbars=0,status=0');
+						winPrint.document.write('<table style=\"border-color: Black; width: 100%;\" class=\"sortable\" id=\"sortable\" border=\"1px\">');
+						winPrint.document.write('<tr  id=\"zag\">');
+						winPrint.document.write('<td class=\"sortable\" style=\"background-color: gainsboro; width: 10%; \"><center> Фирма поставщик</center></td>');
+						winPrint.document.write('<td class=\"sortable\" style=\"background-color: gainsboro; width: 10%; \"><center> Название еды</center></td>');
+						winPrint.document.write('<td class=\"sortable\" style=\"background-color: gainsboro; width: 5%;\"><center>   Дата покупки</center></td>');
+						winPrint.document.write('<td class=\"sortable\" style=\"background-color: gainsboro; width: 5%; \"><center>  Количество ед.</center></td>');
+						winPrint.document.write('<td class=\"sortable\" style=\"background-color: gainsboro; width: 10%; \"><center> Цена за ед.</center></td>');
+						winPrint.document.write('<td class=\"sortable\" style=\"background-color: gainsboro; width: 10%; \"><center> Для животного</center></td>');
+						winPrint.document.write('</tr>');
+					  ";
+				
+				$count=0;
+				while($row = $result->fetch_row()) {
+					echo "winPrint.document.write('<tr>');
+							winPrint.document.write('<td class=\"sortable_body\"><center>".$row[0]."</center></td>');
+							winPrint.document.write('<td class=\"sortable_body\"><center>".$row[1]."</center></td>');
+							winPrint.document.write('<td class=\"sortable_body\"><center>".$row[2]."</center></td>');
+							winPrint.document.write('<td class=\"sortable_body\"><center>".$row[3]."</center></td>');
+							winPrint.document.write('<td class=\"sortable_body\"><center>".$row[4]."</center></td>');
+							winPrint.document.write('<td class=\"sortable_body\"><center>".$row[5]."</center></td>');
+						    winPrint.document.write('</tr>');";
+					$count++;
+				}
+				
+				echo "winPrint.document.write('</table>');
+					winPrint.document.write('<div style=\"float: right; margin-right: 5%\">Всего записей: ".$count." </div>');";
+					
+				echo "</script>";
+			}
+			
+			
+			
 			
 			
 			mysql_close;
@@ -2472,21 +2611,21 @@
 						</tr>
 						<tr>
 							<td>
-								Рост (см): 
+								Вес (кг):
 							</td>
 							<td>
 								<center>
-									<input style="width: 100px; text-align: center" type="number" name="animal_heigh" />
+									<input style="width: 100px; text-align: center" type="number" step="any" name="animal_heigh" />
 								</center>
 							</td>
 						</tr>
 						<tr>
 							<td>
-								Вес (кг):
+								Рост (см): 
 							</td>
 							<td>
 								<center>
-									<input style="width: 100px; text-align: center" type="number" name="animal_weight" />
+									<input style="width: 100px; text-align: center" type="number" step="any" name="animal_weight" />
 								</center>
 							</td>
 						</tr>
@@ -2880,48 +3019,9 @@
 			
 			<h1 style="background-color:Pink; margin-top: 20px; cursor: pointer" onclick="hide8()"><u>Корма животным</u></h1>
 			<div id="DIV8">
-				<?php 
-					$connection = mysql_connect("localhost", "root", "fsociety");
-					mysql_select_db("zoo");
-					
-					$query = "SELECT * FROM season;";
-					$result = mysql_query($query);
-					
-					echo "<table style=\"border-color: DarkRed; float: right; margin-right: 20%;\" class=\"sortable\" id=\"sortable\" border=\"3px\">
-							<tr  id=\"zag\">
-								<td style=\"width: 20px;\">
-									<center> 
-										ID 
-									</center>
-								</td>
-								<td style=\"width: 180px;\">
-									<center> 
-										Название сезона
-									</center>
-								</td>
-							</tr>";
-						
-					while($row = mysql_fetch_row($result))
-					{ 
-						echo "<tr>
-								<td class=\"sortable_body\">
-									<center>
-										".$row[0]."
-									</center>
-								</td>
-								<td class=\"sortable_body\">
-									<center>
-										".$row[1]."
-									</center>
-								</td>
-							</tr>";
-					}
-					
-					echo "</table>"; 
-					mysql_close();
-				?>
+
 				Добавить продавца:
-				<table style="margin-left: -15%; width:500px; height: 100px"> 
+				<table style="width:500px; height: 100px"> 
 						<tr>
 							<td>
 								Название продовца:
@@ -2967,30 +3067,19 @@
 					$query = "SELECT * FROM food_seller;";
 					$result = mysql_query($query);
 					
-					echo "<table style=\"border-color: DarkRed; float: left; margin-left: 100px\" class=\"sortable\" id=\"sortable\" border=\"3px\">
-							<tr  id=\"zag\">
-								<td style=\"width: 20px;\">
-									<center> 
-										ID 
-									</center>
-								</td>
-								<td style=\"width: 100px;\">
-									<center> 
-										Продавец (ТМ)
-									</center>
-								</td>
-								<td style=\"width: 20px;\">
-									<center> 
-										Телефон
-									</center>
-								</td>
-								<td style=\"width: 400px;\">
-									<center> 
-										Адресс
-									</center>
-								</td>
-							</tr>";
-						
+					echo "
+						<div class=\"tableFixHead\" style=\"height: 300px; width: 90%; border: 2px double DarkRed;  margin-top: 10px;\">
+							<table style=\"border-color: DarkRed;\" class=\"sortable7\" border=\"3px\">
+								<thead>
+									<tr>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 3%; cursor: pointer\"><center> ID</center></th>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 30%;cursor: pointer\"><center> Продавец (ТМ)</center></th>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 10%; cursor: pointer\"><center> Телефон</center></th>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 30%; cursor: pointer\"><center> Адресс</center></th>
+									</tr>
+								</thead>
+								<tbody>
+								";
 					while($row = mysql_fetch_row($result))
 					{ 
 						echo "<tr>
@@ -3016,10 +3105,292 @@
 								</td>
 							</tr>";
 					}
+						
+					echo "</tbody></table></div>";
+					
+					
+					
+					
+						
+					
+					mysql_close();
+				?>
+			
+				</br></br>
+				Добавить еду для животных:
+				<table style="width:500px; height: 100px"> 
+						<tr>
+							<td>
+								Название еды:
+							</td>
+							<td>
+								<center>
+									<input style="width: 250px; text-align: center" type="text" name="food_name"/>
+								</center>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Сезон:
+							</td>
+							<td>
+								<center>
+									<select style="width: 250px; text-align: center" type="text"  name="id_season">
+										<?php
+											$connection = mysql_connect("localhost", "root", "fsociety");
+											mysql_select_db("zoo");
+											
+											$query = "SELECT * FROM season;";
+											$result = mysql_query($query);
+											
+											while($row = mysql_fetch_array($result))
+												echo "<option>".$row['id_season'].". ".$row['season_name']."</option>";
+											
+											mysql_close();
+										?>
+									</select>
+								</center>
+							</td>
+						</tr>						
+						<tr>
+							<td>
+								Ед. измерения:
+							</td>
+							<td>
+								<center>
+									<input style="width: 100px; text-align: center" type="text" name="measure"/>
+								</center>
+							</td>
+						</tr>	
+						<tr>
+							<td colspan="2">
+								<input style="margin-left: 150px"type="submit" value="Добавить еду в базу" name="add_food"/>
+							</td>
+						</tr>	
+				</table>
+			
+				<?php 
+					$connection = mysql_connect("localhost", "root", "fsociety");
+					mysql_select_db("zoo");
+					
+					$query = "SELECT * FROM season;";
+					$result = mysql_query($query);
+					
+					echo "<table style=\"border-color: DarkRed; flat: right; margin-left: 75%; margin-top: -125px;\" class=\"sortable\" id=\"sortable\" border=\"3px\">
+							<tr  id=\"zag\">
+								<td style=\"width: 20px;\">
+									<center> 
+										ID 
+									</center>
+								</td>
+								<td style=\"width: 180px;\">
+									<center> 
+										Название сезона
+									</center>
+								</td>
+							</tr>";
+						
+					while($row = mysql_fetch_row($result))
+					{ 
+						echo "<tr>
+								<td class=\"sortable_body\">
+									<center>
+										".$row[0]."
+									</center>
+								</td>
+								<td class=\"sortable_body\">
+									<center>
+										".$row[1]."
+									</center>
+								</td>
+							</tr>";
+					}
 					
 					echo "</table>"; 
 					mysql_close();
 				?>
+			
+				<?php 
+					$connection = mysql_connect("localhost", "root", "fsociety");
+					mysql_select_db("zoo");
+					
+					$query = "SELECT id_food, food.id_season, season_name, food_title, measure
+								FROM food, season
+								WHERE food.id_season=season.id_season;";
+					$result = mysql_query($query);	
+					
+					echo "
+						<div class=\"tableFixHead\" style=\"height: 200px; width: 60%; border: 2px double DarkRed;  margin-top: 10px;\">
+							<table style=\"border-color: DarkRed;\" class=\"sortable8\" border=\"3px\">
+								<thead>
+									<tr>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 5%; cursor: pointer\"><center> ID </center></th>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 10%;cursor: pointer\"><center> Сезон </center></th>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 30%; cursor: pointer\"><center> Название еды </center></th>
+										<th class=\"sortable\" style=\"background-color: PaleGoldenrod; width: 20%; cursor: pointer\"><center> Ед. измерения </center></th>
+									</tr>
+								</thead>
+								<tbody>
+								";
+					
+					while($row = mysql_fetch_array($result))
+						echo "<tr>
+								<td class=\"sortable_body\">
+									<center>
+										".$row['id_food']."
+									</center>
+								</td>
+								<td class=\"sortable_body\">
+									<center>
+										".$row['id_season'].". ".$row['season_name']."
+									</center>
+								</td>
+								<td class=\"sortable_body\">
+									<center>
+										".$row['food_title']."
+									</center>
+								</td>
+								<td class=\"sortable_body\">
+									<center>
+										".$row['measure']."
+									</center>
+								</td>
+							</tr>";
+					
+						
+					echo "</tbody></table></div>";
+
+					
+					mysql_close();
+				?>
+			
+				</br></br>
+				Закупка еды:
+				<table style="padding: 10px; width:500px; height: 200px; border: 1px dotted black;"> 
+					<tr>
+						<td>
+							Название еды:
+						</td>
+						<td>
+							<center>
+								<select style="width: 250px; text-align: center" type="text"  name="food_buy">
+									<?php
+										$connection = mysql_connect("localhost", "root", "fsociety");
+										mysql_select_db("zoo");
+										
+										$query = "SELECT id_food, food_title FROM food;";
+										$result = mysql_query($query);
+										
+										while($row = mysql_fetch_array($result))
+											echo "<option>".$row['id_food'].". ".$row['food_title']."</option>";
+										
+										mysql_close();
+									?>
+								</select>
+							</center>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Продавец:
+						</td>
+						<td>
+							<center>
+								<select style="width: 250px; text-align: center" type="text"  name="seller_buy">
+									<?php
+										$connection = mysql_connect("localhost", "root", "fsociety");
+										mysql_select_db("zoo");
+										
+										$query = "SELECT id_seller, seller_name FROM food_seller;";
+										$result = mysql_query($query);
+										
+										while($row = mysql_fetch_array($result))
+											echo "<option>".$row['id_seller'].". \"".$row['seller_name']."\"</option>";
+										
+										mysql_close();
+									?>
+								</select>
+							</center>
+						</td>
+					</tr>						
+					<tr>
+						<td>
+							Дата покупки:
+						</td>
+						<td>
+							<center>
+								<input 	style="width: 150px; text-align: center" type="text" value="" placeholder="гггг-мм-дд" name="buy_date"
+										pattern="[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])" 
+										oninvalid="setCustomValidity('Неверный формат даты. Требуемый формат: 9999-12-31')"/>
+							</center>
+						</td>
+					</tr>	
+					<tr>
+						<td>
+							Количество ед.:
+						</td>
+						<td>
+							<center>
+								<input style="width: 100px; text-align: center" type="number" name="amount"/>
+							</center>
+						</td>
+					</tr>	
+					<tr>
+						<td>
+							Цена за ед.:
+						</td>
+						<td>
+							<center>
+								<input style="width: 100px; text-align: center" type="number" name="price_per_ed"/>
+							</center>
+						</td>
+					</tr>	
+					<tr>
+						<td>
+							Еда предназначена для животного:
+						</td>
+						<td>
+							<center>
+								<select style="width: 250px; text-align: center" type="text"  name="id_animal_buy_food">
+									<?php
+										$connection = mysql_connect("localhost", "root", "fsociety");
+										mysql_select_db("zoo");
+										
+										$query = "SELECT id_animal, name FROM animal;";
+										$result = mysql_query($query);
+										
+										while($row = mysql_fetch_array($result))
+											echo "<option>".$row['id_animal'].". ".$row['name']."</option>";
+										
+										mysql_close();
+									?>
+								</select>
+							</center>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<input style="margin-left: 150px"type="submit" value="Купить" name="buy"/>
+						</td>
+					</tr>	
+				</table>
+				Еда, купленная для:
+				<select style="width: 250px; text-align: center" type="text"  name="bought_name">
+					<?php
+						$connection = mysql_connect("localhost", "root", "fsociety");
+						mysql_select_db("zoo");
+					
+						$query = "SELECT id_animal, name
+								FROM animal;";
+						$result = mysql_query($query);
+	
+						while($row = mysql_fetch_array($result))
+							echo "<option>".$row['id_animal'].". ".$row['name']."</option>";
+					
+						mysql_close();
+					?>
+				</select>
+			<input type="submit" value="Показать" name="print_food"/>
 			</div>
 			
 			
@@ -3031,7 +3402,9 @@
 			
 			
 			
-			<div style="margin-top: 5000px">
+			<div style="height: 7px; weight: 100%; background-color:DarkRed"></div>
+			
+			
 			Узнать всю имеющуюся информацию о животном проживающем в этом зоопарке:
 			<select style="width: 250px; text-align: center" type="text"  name="all_info">
 				<?php
